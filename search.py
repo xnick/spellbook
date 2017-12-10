@@ -60,21 +60,39 @@ try:
         if i>0:
             # Results
             searchstr=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
+            first=False
+            suggestions=[]
             for spell in jdata:
                 if all(term in spell["name"].lower() for term in searchstr):
-                    resWin.move(0,0)
-                    resWin.clrtobot()
-                    resWin.border()
-                    resWin.addstr(1, 1, spell["name"])
-                    lineno=0
-                    for line in textwrap.wrap(spell["description"], 30):
-                        resWin.addstr(2+lineno, 1, line)
-                        lineno+=1
-                    break
-            resWin.refresh()
-
+                    if not first:
+                        first=True
+                        resWin.move(0,0)
+                        resWin.clrtobot()
+                        resWin.border()
+                        resWin.addstr(1, 1, spell["name"])
+                        lineno=0
+                        for line in textwrap.wrap(spell["description"],
+                                resWinx-2):
+                            resWin.addstr(2+lineno, 1, line)
+                            lineno+=1
+                            if lineno==resWiny-4:
+                                break
+                    resWin.refresh()
+                    suggestions.append("'"+spell['name'].replace(' ', '_')+"'")
             # Suggestions
-
+            suggestions='\t'.join(suggestions)
+            suggestions=textwrap.wrap(suggestions, int(suggWinx-2))
+            lineno=0
+            suggWin.move(0,0)
+            suggWin.clrtobot()
+            suggWin.border()
+            for line in suggestions:
+                suggWin.addstr(1+lineno,1,line.replace('_', ' '))
+                lineno+=1
+#               break
+                if lineno==suggWiny-2:
+                    break
+            suggWin.refresh()
         else:
             pass
 
@@ -84,7 +102,8 @@ except Exception as e:
     curses.echo()
     curses.endwin()
     traceback.print_exc()
-    print('\n')
+    for line in suggestions:
+        print(line)
     exit()
 curses.nocbreak()
 stdscr.keypad(False)
