@@ -59,9 +59,9 @@ try:
 
         if i>0:
             # Results
-            searchstr=searchWin.instr(0, 8, i).decode("utf-8").lower()
+            searchstr=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
             for spell in jdata:
-                if searchstr in spell["name"].lower():
+                if all(term in spell["name"].lower() for term in searchstr):
                     resWin.move(0,0)
                     resWin.clrtobot()
                     resWin.border()
