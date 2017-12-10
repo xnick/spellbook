@@ -8,10 +8,22 @@ import string
 import textwrap
 import traceback
 
+def clearandborder(screen):
+    screen.move(0,0)
+    screen.clrtobot()
+    screen.border()
+
+def addlong(lstr, screen, maxy, maxx, posy, posx):
+    lineno=0
+    for line in textwrap.wrap(lstr, maxx-1):
+        screen.addstr(posy+lineno, posx, line)
+        lineno+=1
+        if lineno==maxy:
+            break
+
 stdscr = curses.initscr()
 #curses.noecho()
 curses.cbreak()
-stdscr.keypad(True)
 
 try:
     with open("spells.json") as jfile:
@@ -24,16 +36,16 @@ try:
     i=0
     inp=""
     
-    resWiny=int(y*0.7)
+    resWiny=int(y*0.8)
     resWinx=x-1
     resWin=curses.newwin(resWiny,resWinx,1,1)
-
     resWin.border()
     resWin.refresh()
     
     searchWiny=1
     searchWinx=x-1
     searchWin=curses.newwin(searchWiny,searchWinx,y-1,1)
+    searchWin.keypad(True)
 
     suggWiny=y-resWiny-searchWiny-1
     suggWinx=x-1
@@ -45,68 +57,73 @@ try:
     while(True):
         searchWin.addstr(0, 0, "Search: ")
         ch=searchWin.getkey(0,8+i)
-        if ch in [curses.KEY_RESIZE]:
+        stdscr.border()
+        if ch in ['KEY_RESIZE']:
             raise Exception('Ham and green eggs')
-        elif ch in [curses.KEY_BACKSPACE, '\b', '\x7f']:
+        elif ch in ['KEY_BACKSPACE']:
             if i>0:
                 i-=1
-        elif ch in [curses.KEY_RIGHT, curses.KEY_LEFT, curses.KEY_UP, curses.KEY_DOWN]:
+        elif ch in ['^W', '\x17']:
+            i=searchWin.instr(0,8,i).decode("utf-8").rfind(' ')
+            if i<0:
+                i=0
+            searchWin.move(0, 8+i)
+        elif ch in ['KEY_ENTER', '\n']:
+            pass
+        elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
+            # Select spells from suggestions
             pass
         elif ch in string.printable:
-            if i<x-2:
+            if i<searchWinx-10:
                 i+=1
+        else:
+            raise Exception("What was that?")
+        stdscr.addstr(y, searchWinx-20, ' '+str(i)+' ')
+        stdscr.addstr(y, searchWinx-15, ' '+ch+' ')
         searchWin.clrtoeol()
 
         if i>0:
             # Results
             searchstr=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            first=False
+            result=False
             suggestions=[]
             for spell in jdata:
                 if all(term in spell["name"].lower() for term in searchstr):
-                    if not first:
-                        first=True
-                        resWin.move(0,0)
-                        resWin.clrtobot()
-                        resWin.border()
+                    if not result:
+                        result=True
+                        clearandborder(resWin)
                         resWin.addstr(1, 1, spell["name"])
-                        lineno=0
-                        for line in textwrap.wrap(spell["description"],
-                                resWinx-2):
-                            resWin.addstr(2+lineno, 1, line)
-                            lineno+=1
-                            if lineno==resWiny-4:
-                                break
-                    resWin.refresh()
+                        addlong(spell["description"], resWin, resWiny-3,
+                                resWinx-2, 2, 1)
                     suggestions.append("'"+spell['name'].replace(' ', '_')+"'")
             # Suggestions
             suggestions='\t'.join(suggestions)
-            suggestions=textwrap.wrap(suggestions, int(suggWinx-2))
-            lineno=0
-            suggWin.move(0,0)
-            suggWin.clrtobot()
-            suggWin.border()
-            for line in suggestions:
-                suggWin.addstr(1+lineno,1,line.replace('_', ' '))
-                lineno+=1
-#               break
-                if lineno==suggWiny-2:
-                    break
-            suggWin.refresh()
+            clearandborder(suggWin)
+            addlong(suggestions, suggWin, suggWiny-2, suggWinx-2, 1,1)
         else:
-            pass
+            clearandborder(resWin)
+            clearandborder(suggWin)
 
+        stdscr.refresh()
+        resWin.refresh()
+        suggWin.refresh()
+
+except KeyboardInterrupt as e:
+    curses.nocbreak()
+    stdscr.keypad(False)
+    curses.echo()
+    curses.endwin()
+    traceback.print_exc()
+    exit()
 except Exception as e:
     curses.nocbreak()
     stdscr.keypad(False)
     curses.echo()
     curses.endwin()
     traceback.print_exc()
-    for line in suggestions:
-        print(line)
+    print(hex(int(ch)))
     exit()
 curses.nocbreak()
-stdscr.keypad(False)
 curses.echo()
 curses.endwin()
 
