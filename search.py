@@ -8,6 +8,14 @@ import string
 import textwrap
 import traceback
 
+def search(terms, spelllist):
+    spells=[]
+    for spell in spelllist:
+        if all(term in spell["name"].lower() for term in terms):
+            spells.append(spell)
+    return spells
+
+
 def clearandborder(screen):
     screen.move(0,0)
     screen.clrtobot()
@@ -22,8 +30,10 @@ def addlong(lstr, screen, maxy, maxx, posy, posx):
             break
 
 stdscr = curses.initscr()
-#curses.noecho()
 curses.cbreak()
+
+spells=[]
+searchterms=[]
 
 try:
     with open("spells.json") as jfile:
@@ -31,7 +41,7 @@ try:
     stdscr.border()
     stdscr.refresh()
     y=curses.LINES-1
-    x=curses.COLS-1
+    x=curses.COLS
 
     i=0
     inp=""
@@ -41,6 +51,12 @@ try:
     resWin=curses.newwin(resWiny,resWinx,1,1)
     resWin.border()
     resWin.refresh()
+    
+    debugWiny=1
+    debugWinx=x
+    debugWin=curses.newwin(debugWiny,debugWinx,y,0)
+    debugWin.border()
+    debugWin.keypad(True)
     
     searchWiny=1
     searchWinx=x-1
@@ -63,12 +79,20 @@ try:
         elif ch in ['KEY_BACKSPACE']:
             if i>0:
                 i-=1
+            if i>0:
+                searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
+                spells=search(searchterms, jdata)
+                if len(spells)>0:
+                    clearandborder(resWin)
+                    resWin.addstr(1,1,spells[0]['name'])
+                    addlong(spells[0]['description'], resWin, resWiny-3, resWinx-2, 2, 1)
         elif ch in ['^W', '\x17']:
             i=searchWin.instr(0,8,i).decode("utf-8").rfind(' ')
             if i<0:
                 i=0
             searchWin.move(0, 8+i)
         elif ch in ['KEY_ENTER', '\n']:
+            ch='KEY_ENTER'
             pass
         elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
             # Select spells from suggestions
@@ -76,54 +100,45 @@ try:
         elif ch in string.printable:
             if i<searchWinx-10:
                 i+=1
+            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
+            spells=search(searchterms, jdata)
+            if len(spells)>0:
+                clearandborder(resWin)
+                resWin.addstr(1,1,spells[0]['name'])
+                addlong(spells[0]['description'], resWin, resWiny-3, resWinx-2, 2, 1)
         else:
             raise Exception("What was that?")
-        stdscr.addstr(y, searchWinx-20, ' '+str(i)+' ')
-        stdscr.addstr(y, searchWinx-15, ' '+ch+' ')
+
+        # Suggestions
+        clearandborder(suggWin)
+        addlong('\t'.join(spell['name'] for spell in spells), suggWin, suggWiny-2, suggWinx-2, 1,1)
+
+        searchWin.move(0, 8+i)
         searchWin.clrtoeol()
+        searchWin.vline(0,searchWinx-1,'|', 1)
+        
+        clearandborder(debugWin)
+        debugWin.addstr(0, x-25, ' '+str(i)+' ')
+        debugWin.addstr(0, x-20, ' '+ch+' ')
+        debugWin.addstr(0, 2, ' '.join(searchterms))
 
-        if i>0:
-            # Results
-            searchstr=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            result=False
-            suggestions=[]
-            for spell in jdata:
-                if all(term in spell["name"].lower() for term in searchstr):
-                    if not result:
-                        result=True
-                        clearandborder(resWin)
-                        resWin.addstr(1, 1, spell["name"])
-                        addlong(spell["description"], resWin, resWiny-3,
-                                resWinx-2, 2, 1)
-                    suggestions.append("'"+spell['name'].replace(' ', '_')+"'")
-            # Suggestions
-            suggestions='\t'.join(suggestions)
-            clearandborder(suggWin)
-            addlong(suggestions, suggWin, suggWiny-2, suggWinx-2, 1,1)
-        else:
-            clearandborder(resWin)
-            clearandborder(suggWin)
-
-        stdscr.refresh()
+        debugWin.refresh()
+        searchWin.refresh()
         resWin.refresh()
         suggWin.refresh()
 
 except KeyboardInterrupt as e:
     curses.nocbreak()
     stdscr.keypad(False)
-    curses.echo()
     curses.endwin()
     traceback.print_exc()
+    print(ch)
     exit()
 except Exception as e:
     curses.nocbreak()
     stdscr.keypad(False)
-    curses.echo()
     curses.endwin()
     traceback.print_exc()
-    print(hex(int(ch)))
+    print(ch)
     exit()
-curses.nocbreak()
-curses.echo()
-curses.endwin()
 
