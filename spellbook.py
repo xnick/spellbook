@@ -78,7 +78,7 @@ y=curses.LINES-1
 x=curses.COLS-1
 
 
-resWiny=max(int(y*0.8), y-5)
+resWiny=min(int(y*0.8), y-5)
 resWinx=x-1
 resWin=curses.newwin(resWiny,resWinx,1,1)
 resWin.border()
