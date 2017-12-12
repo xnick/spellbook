@@ -69,19 +69,18 @@ with open("spells.json") as jfile:
     jdata=json.load(jfile)
 
 spellbook={spell['name']:spell for spell in jdata}
+
 stdscr.border()
 stdscr.refresh()
+
 y=curses.LINES-1
 x=curses.COLS-1
 
-i=0
-inp=""
 
 resWiny=int(y*0.8)
 resWinx=x-1
 resWin=curses.newwin(resWiny,resWinx,1,1)
 resWin.border()
-resWin.refresh()
 
 debugWiny=1
 debugWinx=x+1
@@ -97,8 +96,9 @@ suggWiny=y-resWiny-searchWiny-1
 suggWinx=x-1
 suggWin=curses.newwin(suggWiny,suggWinx,resWiny+1,1)
 suggWin.border()
-suggWin.refresh()
 
+i=0
+inp=""
 selected=''
 selectionno=0
 scroll=0
@@ -114,7 +114,31 @@ try:
             ch=searchWin.getkey(0,8+i)
         stdscr.border()
         if ch in ['KEY_RESIZE']:
-            raise Exception('Ham and green eggs')
+            curses.resize_term(*stdscr.getmaxyx())
+
+            stdscr.refresh()
+
+            y=curses.LINES-1
+            x=curses.COLS-1
+
+            resWiny=int(y*0.8)
+            resWinx=x-1
+            resWin.resize(resWiny,resWinx)
+            resWin.border()
+
+            debugWiny=1
+            debugWinx=x+1
+            debugWin.resize(debugWiny,debugWinx)
+            debugWin.border()
+
+            searchWiny=1
+            searchWinx=x-1
+            searchWin.resize(searchWiny,searchWinx)
+
+            suggWiny=y-resWiny-searchWiny-1
+            suggWinx=x-1
+            suggWin.resize(suggWiny,suggWinx)
+            suggWin.border()
         elif ch in ['KEY_BACKSPACE']:
             if i>0:
                 i-=1
@@ -181,6 +205,7 @@ try:
 
         searchWin.move(0, 8+i)
         searchWin.clrtoeol()
+        searchWin.addstr(0, 8, ' '.join(searchterms))
         
         clearandborder(debugWin)
         debugWin.addstr(0, x-30, ' '+str(scroll)+' ')
@@ -188,10 +213,10 @@ try:
         debugWin.addstr(0, x-20, ' '+ch+' ')
         debugWin.addstr(0, 2, ' '.join(searchterms))
 
-        debugWin.refresh()
-        searchWin.refresh()
         resWin.refresh()
         suggWin.refresh()
+        searchWin.refresh()
+        debugWin.refresh()
 
 except KeyboardInterrupt as e:
     curses.nocbreak()
