@@ -57,6 +57,7 @@ def adddesc(lstr, screen, maxy, maxx, posy, posx, scroll):
         lineno+=1
         if lineno==maxy:
             break
+    return scroll
 
 stdscr = curses.initscr()
 curses.cbreak()
@@ -101,13 +102,14 @@ suggWin.refresh()
 selected=''
 selectionno=0
 scroll=0
-init=0
+init=False
+dosearch=True
 try:
     while(True):
         searchWin.addstr(0, 0, "Search: ")
         if not init:
-            ch='\x17'
-            init=1
+            ch='\x17' # piggy-back
+            init=True
         else:
             ch=searchWin.getkey(0,8+i)
         stdscr.border()
@@ -116,22 +118,18 @@ try:
         elif ch in ['KEY_BACKSPACE']:
             if i>0:
                 i-=1
-            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            spells=search(searchterms, jdata)
-        elif ch in ['^W', '\x17'] or not init:
+            dosearch=True
+        elif ch in ['^W', '\x17']:
             i=searchWin.instr(0,8,i).decode("utf-8").rfind(' ')
             if i<0:
                 i=0
             searchWin.move(0, 8+i)
-            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            spells=search(searchterms, jdata)
+            dosearch=True
         elif ch in ['KEY_ENTER', '\n']:
             ch='KEY_ENTER'
             i=len(selected)
             searchWin.addstr(0, 8, selected)
-            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            spells=search(searchterms, jdata)
-            pass
+            dosearch=True
         elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
             if ch=='KEY_RIGHT':
                 if selectionno<len(suggestions)-1:
@@ -152,12 +150,15 @@ try:
         elif ch in string.printable:
             if i<searchWinx-10:
                 i+=1
-            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
-            spells=search(searchterms, jdata)
+            dosearch=True
         else:
             raise Exception("What was that?")
 
-        # Suggestions
+        if dosearch:
+            searchterms=searchWin.instr(0, 8, i).decode("utf-8").lower().split(' ')
+            spells=search(searchterms, jdata)
+            dosearch=False
+
         clearandborder(suggWin)
         suggestions=[spell['name'] for spell in spells]
         if not selected or (selected not in suggestions and len(suggestions)):
@@ -173,7 +174,8 @@ try:
 
             clearandborder(resWin)
             resWin.addstr(1,1,spellbook[selected]['name'])
-            adddesc(spellbook[selected]['description'], resWin, resWiny-1, resWinx-1, 2, 1, scroll)
+            scroll=adddesc(spellbook[selected]['description'], 
+                    resWin, resWiny-1, resWinx-1, 2, 1, scroll)
 
         addsugg(suggestions, selected, suggWin, suggWiny-1, suggWinx-1, 1, 1)
 
