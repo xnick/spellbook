@@ -64,6 +64,7 @@ curses.cbreak()
 
 spells=[]
 searchterms=[]
+debug=False
 
 with open("spells.json") as jfile:
     jdata=json.load(jfile)
@@ -77,15 +78,16 @@ y=curses.LINES-1
 x=curses.COLS-1
 
 
-resWiny=int(y*0.8)
+resWiny=max(int(y*0.8), y-5)
 resWinx=x-1
 resWin=curses.newwin(resWiny,resWinx,1,1)
 resWin.border()
 
-debugWiny=1
-debugWinx=x+1
-debugWin=curses.newwin(debugWiny,debugWinx,y,0)
-debugWin.border()
+if debug:
+    debugWiny=1
+    debugWinx=x+1
+    debugWin=curses.newwin(debugWiny,debugWinx,y,0)
+    debugWin.border()
 
 searchWiny=1
 searchWinx=x-1
@@ -121,24 +123,28 @@ try:
             y=curses.LINES-1
             x=curses.COLS-1
 
-            resWiny=int(y*0.8)
+            resWiny=min(int(y*0.8), y-5)
             resWinx=x-1
             resWin.resize(resWiny,resWinx)
             resWin.border()
-
-            debugWiny=1
-            debugWinx=x+1
-            debugWin.resize(debugWiny,debugWinx)
-            debugWin.border()
+            
+            if debug:
+                debugWiny=1
+                debugWinx=x+1
+                debugWin.resize(debugWiny,debugWinx)
+                debugWin.border()
 
             searchWiny=1
             searchWinx=x-1
             searchWin.resize(searchWiny,searchWinx)
+            searchWin.mvwin(y-1,1)
 
             suggWiny=y-resWiny-searchWiny-1
             suggWinx=x-1
             suggWin.resize(suggWiny,suggWinx)
+            suggWin.mvwin(resWiny+1, 1)
             suggWin.border()
+            dosearch=True
         elif ch in ['KEY_BACKSPACE']:
             if i>0:
                 i-=1
@@ -207,16 +213,17 @@ try:
         searchWin.clrtoeol()
         searchWin.addstr(0, 8, ' '.join(searchterms))
         
-        clearandborder(debugWin)
-        debugWin.addstr(0, x-30, ' '+str(scroll)+' ')
-        debugWin.addstr(0, x-25, ' '+str(i)+' ')
-        debugWin.addstr(0, x-20, ' '+ch+' ')
-        debugWin.addstr(0, 2, ' '.join(searchterms))
+        if debug:
+            clearandborder(debugWin)
+            debugWin.addstr(0, x-30, ' '+str(scroll)+' ')
+            debugWin.addstr(0, x-25, ' '+str(i)+' ')
+            debugWin.addstr(0, x-20, ' '+ch+' ')
+            debugWin.addstr(0, 2, ' '.join(searchterms))
+            debugWin.refresh()
 
         resWin.refresh()
         suggWin.refresh()
         searchWin.refresh()
-        debugWin.refresh()
 
 except KeyboardInterrupt as e:
     curses.nocbreak()
