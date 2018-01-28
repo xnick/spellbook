@@ -209,10 +209,16 @@ try:
 
             clearandborder(resWin)
             resWin.addstr(1,1,spellbook[selected]['name'])
-            desc=[spellbook[selected].get('casting_time'),
-                    spellbook[selected].get('duration'),
-                    spellbook[selected].get('description'),
-                    spellbook[selected].get('higher_levels')]
+
+            desc=[]
+            desc.append(spellbook[selected].get('type')+' ('+
+                    ', '.join(spellbook[selected].get('classes'))+')')
+            desc.append('Range: '+spellbook[selected].get('range'))
+            desc.append('Casting Time: '+spellbook[selected].get('casting_time'))
+            desc.append('Duration: '+spellbook[selected].get('duration'))
+            desc.append(''+spellbook[selected].get('description'))
+            if spellbook[selected].get('higher_levels') is not None:
+                desc.append('At Higher Levels: '+spellbook[selected].get('higher_levels'))
 
             scroll=adddesc(desc, 
                 resWin, resWiny-1, resWinx-1, 2, 1, scroll)
