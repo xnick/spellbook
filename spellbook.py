@@ -46,14 +46,19 @@ def addsugg(spellnames, selected, screen, maxy, maxx, posy, posx):
     screen.border()
 
 
-def adddesc(lstr, screen, maxy, maxx, posy, posx, scroll):
+def adddesc(desc, screen, maxy, maxx, posy, posx, scroll):
     lineno=posy
     colno=posx
-    lines=textwrap.wrap(lstr, maxx-1)
+    lines=[]
+    for lstr in desc:
+        if lstr is not None:
+            lines.extend(textwrap.wrap(lstr, maxx-1))
+            lines.append('\n')
     if scroll>len(lines):
         scroll=len(lines)
     for line in lines[scroll:]:
-        screen.addstr(lineno, colno, line)
+        if line is not '\n':
+            screen.addstr(lineno, colno, line)
         lineno+=1
         if lineno==maxy:
             break
@@ -204,8 +209,13 @@ try:
 
             clearandborder(resWin)
             resWin.addstr(1,1,spellbook[selected]['name'])
-            scroll=adddesc(spellbook[selected]['description'], 
-                    resWin, resWiny-1, resWinx-1, 2, 1, scroll)
+            desc=[spellbook[selected].get('casting_time'),
+                    spellbook[selected].get('duration'),
+                    spellbook[selected].get('description'),
+                    spellbook[selected].get('higher_levels')]
+
+            scroll=adddesc(desc, 
+                resWin, resWiny-1, resWinx-1, 2, 1, scroll)
 
         addsugg(suggestions, selected, suggWin, suggWiny-1, suggWinx-1, 1, 1)
 
