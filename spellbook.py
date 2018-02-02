@@ -71,7 +71,7 @@ spells=[]
 searchterms=[]
 debug=False
 
-with open("spells.json") as jfile:
+with open("spells3.json") as jfile:
     jdata=json.load(jfile)
 
 spellbook={spell['name']:spell for spell in jdata}
@@ -211,8 +211,9 @@ try:
             resWin.addstr(1,1,spellbook[selected]['name'])
 
             desc=[]
-            desc.append(spellbook[selected].get('type')+' ('+
-                    ', '.join(spellbook[selected].get('classes'))+')')
+            desc.append(spellbook[selected].get('level')+
+                    " "+spellbook[selected].get('school')+' ('+
+                    spellbook[selected].get('class')+')')
             desc.append('Range: '+spellbook[selected].get('range'))
             desc.append('Casting Time: '+spellbook[selected].get('casting_time'))
             desc.append('Duration: '+spellbook[selected].get('duration'))
@@ -254,5 +255,6 @@ except Exception as e:
     curses.endwin()
     traceback.print_exc()
     print(ch)
+    print(spellbook[selected]["name"])
     exit()
 
