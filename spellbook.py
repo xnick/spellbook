@@ -150,7 +150,7 @@ try:
             suggWin.mvwin(resWiny+1, 1)
             suggWin.border()
             dosearch=True
-        elif ch in ['KEY_BACKSPACE']:
+        elif ch in ['KEY_BACKSPACE', '\b', '\x7f']:
             if i>0:
                 i-=1
             dosearch=True
@@ -272,6 +272,7 @@ except Exception as e:
     curses.endwin()
     traceback.print_exc()
     print(ch)
+    print(":".join("{:02x}".format(ord(c)) for c in ch))
     print(spellbook[selected]["name"])
     exit()
 
