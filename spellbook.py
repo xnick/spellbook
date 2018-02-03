@@ -71,7 +71,7 @@ spells=[]
 searchterms=[]
 debug=False
 
-with open("spells3.json") as jfile:
+with open("dnd-spells/spells.json") as jfile:
     jdata=json.load(jfile)
 
 spellbook={spell['name']:spell for spell in jdata}
@@ -182,6 +182,18 @@ try:
             elif ch=='KEY_DOWN':
                 scroll+=1
             selected=suggestions[selectionno]
+        elif ch in ['KEY_NPAGE', 'KEY_PPAGE']:
+            if ch=='KEY_NPAGE':
+                scroll+=resWiny-1
+            elif ch=='KEY_PPAGE':
+                scroll-=resWiny-1
+                if scroll<0:
+                    scroll=0
+        elif ch in ['KEY_END', 'KEY_HOME']:
+            if ch=='KEY_END':
+                scroll+=999999#Sup
+            elif ch=='KEY_HOME':
+                scroll=0
         elif ch in string.printable:
             if i<searchWinx-10:
                 i+=1
@@ -199,6 +211,7 @@ try:
         if not selected or (selected not in suggestions and len(suggestions)):
             selected=suggestions[0]
             selectionno=0
+            scroll=0
 
         if selected:
             if selected in suggestions:
@@ -217,9 +230,13 @@ try:
             desc.append('Range: '+spellbook[selected].get('range'))
             desc.append('Casting Time: '+spellbook[selected].get('casting_time'))
             desc.append('Duration: '+spellbook[selected].get('duration'))
-            desc.append(''+spellbook[selected].get('description'))
-            if spellbook[selected].get('higher_levels') is not None:
-                desc.append('At Higher Levels: '+spellbook[selected].get('higher_levels'))
+            desc.append('Description:')
+            desc.extend(spellbook[selected].get('desc').replace('<p>', 
+                '    ').split('</p>'))
+            if spellbook[selected].get('higher_level') is not None:
+                desc.append('At Higher Levels:')
+                desc.extend( spellbook[selected].get(
+                            'higher_level').replace('<p>', '    ').split('</p>'))
 
             scroll=adddesc(desc, 
                 resWin, resWiny-1, resWinx-1, 2, 1, scroll)
