@@ -10,9 +10,15 @@ import traceback
 
 def search(terms, spelllist):
     spells=[]
-    for spell in spelllist:
-        if all(term in spell["name"].lower() for term in terms):
-            spells.append(spell)
+    if terms[0].startswith('^'):
+        term=' '.join(terms)[1:]
+        for spell in spelllist:
+            if spell['name'].lower().startswith(term):
+                spells.append(spell)
+    else:
+        for spell in spelllist:
+            if all(term in spell["name"].lower() for term in terms):
+                spells.append(spell)
     return spells
 
 
