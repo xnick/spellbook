@@ -8,21 +8,9 @@ import string
 import textwrap
 import traceback
 
+from model import *
 from programState import *
 from exceptions import *
-
-def search(terms, spelllist):
-    spells=[]
-    if terms[0].startswith('^'):
-        term=' '.join(terms)[1:]
-        for spell in spelllist:
-            if spell['name'].lower().startswith(term):
-                spells.append(spell)
-    else:
-        for spell in spelllist:
-            if all(term in spell["name"].lower() for term in terms):
-                spells.append(spell)
-    return spells
 
 
 def addsugg(spellnames, selected, screen, maxy, maxx, posy, posx):
@@ -56,8 +44,7 @@ def prepareDescription(spell):
     desc.append('Casting Time: '+spell.get('casting_time'))
     desc.append('Duration: '+spell.get('duration'))
     desc.append('Description:')
-    desc.extend(spell.get('desc').replace('<p>', 
-        '    ').split('</p>'))
+    desc.extend(spell.get('desc').replace('<p>', '    ').split('</p>'))
     if spell.get('higher_level') is not None:
         desc.append('At Higher Levels:')
         desc.extend( spell.get(
@@ -87,15 +74,10 @@ def adddesc(desc, screen, maxy, maxx, posy, posx, scroll):
 
 
 if __name__ == "__main__":
-    spells=[]
-    searchterms=[]
     debug=False
-
-    with open("dnd-spells/spells.json") as jfile:
-        jdata=json.load(jfile)
-
-    spellbook={spell['name']:spell for spell in jdata}
-    windows=ProgramState(False)
+    
+    data=Model()
+    windows=ProgramState(False)#View
 
     i=0
     inp=""
@@ -169,7 +151,7 @@ if __name__ == "__main__":
 
             if dosearch:
                 searchterms=windows.getInputString(i).lower().split(' ')
-                spells=search(searchterms, jdata)
+                spells=data.search(searchterms)
                 dosearch=False
 
             windows.suggWin.clearAndBorder()
