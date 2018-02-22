@@ -2,7 +2,6 @@ import curses
 
 
 class ProgramState:
-    index=8
     def __init__(self, debug):
         self.debug=debug
         self.stdscr = curses.initscr()
@@ -26,9 +25,23 @@ class ProgramState:
         self.suggWin=Window(self.y-self.resWin.y-self.searchWin.y-1,
                 self.x-1,self.resWin.y+1,1)
         self.suggWin.win.border()
-    
+        self.isFullscreen=False
+        self.index=0
+   
+
+    def fullscreen(self):
+        # resize resWin 
+        #hide the rest
+        self.resWin.y=self.y+1
+        self.resWin.x=self.x+1
+        self.resWin.win.mvwin(0,0)
+        self.resWin.win.resize(self.resWin.y,self.resWin.x)
+        self.resWin.win.border()
+        self.isFullscreen=True
+
     def setSearch(self):
-        self.searchWin.win.addstr(0,0,'Search: ')
+        if not self.isFullscreen:
+            self.searchWin.win.addstr(0,0,'Search: ')
 
     def getInput(self):
         return self.searchWin.win.getkey(0,8+self.index)
@@ -38,11 +51,11 @@ class ProgramState:
     
     def refresh(self):
         if self.debug:
-            self.debugWin.refresh()
+            self.debugWin.win.refresh()
 
-        self.resWin.win.refresh()
         self.suggWin.win.refresh()
         self.searchWin.win.refresh()
+        self.resWin.win.refresh()
     
     def eraseWord(self):
         self.index=self.searchWin.win.instr(0,8,self.index).decode("utf-8").rfind(' ')
@@ -59,7 +72,9 @@ class ProgramState:
         self.resWin.y=min(int(self.y*0.8), self.y-5)
         self.resWin.x=self.x-1
         self.resWin.win.resize(self.resWin.y,self.resWin.x)
+        self.resWin.win.mvwin(1,1)
         self.resWin.win.border()
+        self.isFullscreen=False
         
         if self.debug:
             self.debugWin.y=1

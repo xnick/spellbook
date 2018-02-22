@@ -76,7 +76,7 @@ if __name__ == "__main__":
     debug=False
     
     data=Model()
-    windows=ProgramState(False)
+    windows=ProgramState(debug)
 
     inp=""
     selected=''
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             else:
                 ch=windows.getInput()
             windows.stdscr.border()
-            if ch in ['KEY_RESIZE']:
+            if ch in ['KEY_RESIZE', 'KEY_ESCAPE', '\x1b']:
                 windows.resize()
                 dosearch=True
             elif ch in ['KEY_BACKSPACE', '\b', '\x7f']:
@@ -107,9 +107,10 @@ if __name__ == "__main__":
                 dosearch=True
             elif ch in ['KEY_ENTER', '\n']:
                 # Also make this enter fullscreen mode
-                windows.index=len(selected)
-                windows.searchWin.win.addstr(0, 8, selected)
-                dosearch=True
+                windows.fullscreen()
+                # windows.index=len(selected)
+                # windows.searchWin.win.addstr(0, 8, selected)
+                # dosearch=True
             elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
                 if ch=='KEY_RIGHT':
                     if selectionno<len(suggestions)-1:
@@ -189,9 +190,9 @@ if __name__ == "__main__":
             
             if debug:
                 windows.debugWin.clearAndBorder()
-                windows.debugWin.win.addstr(0, x-30, ' '+str(scroll)+' ')
-                windows.debugWin.win.addstr(0, x-25, ' '+str(windows.index)+' ')
-                windows.debugWin.win.addstr(0, x-20, ' '+ch+' ')
+                windows.debugWin.win.addstr(0, windows.x-30, ' '+str(scroll)+' ')
+                windows.debugWin.win.addstr(0, windows.x-25, ' '+str(windows.index)+' ')
+                #windows.debugWin.win.addstr(0, windows.x-20, ' '+ch+' ')
                 windows.debugWin.win.addstr(0, 2, ' '.join(searchterms))
                 windows.debugWin.win.refresh()
             windows.refresh()
@@ -211,6 +212,6 @@ if __name__ == "__main__":
         traceback.print_exc()
         print(ch)
         print(":".join("{:02x}".format(ord(c)) for c in ch))
-        print(spellbook[selected]["name"])
+        print(data.spelllist[selected]["name"])
         exit()
 
