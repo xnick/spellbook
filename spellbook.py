@@ -97,31 +97,31 @@ if __name__ == "__main__":
                 windows.resize()
                 dosearch=True
             elif ch in ['KEY_BACKSPACE', '\b', '\x7f']:
-                if windows.index>0:
-                    windows.index-=1
-                dosearch=True
+                if not windows.isFullscreen:
+                    if windows.index>0:
+                        windows.index-=1
+                    dosearch=True
             elif ch in ['^W', '\x17']:
-                windows.eraseWord()
-                if windows.index<0:
-                    windows.index=0
-                dosearch=True
+                if not windows.isFullscreen:
+                    windows.eraseWord()
+                    if windows.index<0:
+                        windows.index=0
+                    dosearch=True
             elif ch in ['KEY_ENTER', '\n']:
-                # Also make this enter fullscreen mode
                 windows.fullscreen()
-                # windows.index=len(selected)
-                # windows.searchWin.win.addstr(0, 8, selected)
-                # dosearch=True
             elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
                 if ch=='KEY_RIGHT':
-                    if selectionno<len(suggestions)-1:
-                        selectionno+=1
-                    else:
-                        selectionno=len(suggestions)-1
-                    scroll=0
+                    if not windows.isFullscreen:
+                        if selectionno<len(suggestions)-1:
+                            selectionno+=1
+                        else:
+                            selectionno=len(suggestions)-1
+                        scroll=0
                 elif ch=='KEY_LEFT':
-                    if selectionno>0:
-                        selectionno-=1
-                    scroll=0
+                    if not windows.isFullscreen:
+                        if selectionno>0:
+                            selectionno-=1
+                        scroll=0
                 elif ch=='KEY_UP':
                     if scroll>0:
                         scroll-=1
@@ -141,9 +141,10 @@ if __name__ == "__main__":
                 elif ch=='KEY_HOME':
                     scroll=0
             elif ch in string.printable:
-                if windows.index<windows.searchWin.x-10:
-                    windows.index+=1
-                dosearch=True
+                if not windows.isFullscreen:
+                    if windows.index<windows.searchWin.x-10:
+                        windows.index+=1
+                    dosearch=True
             else:
                 raise Exception("What was that?")
 
