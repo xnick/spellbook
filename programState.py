@@ -2,6 +2,7 @@ import curses
 
 
 class ProgramState:
+    index=8
     def __init__(self, debug):
         self.debug=debug
         self.stdscr = curses.initscr()
@@ -29,12 +30,11 @@ class ProgramState:
     def setSearch(self):
         self.searchWin.win.addstr(0,0,'Search: ')
 
-    def getInput(self, i):
-        return self.searchWin.win.getkey(0,8+i)
+    def getInput(self):
+        return self.searchWin.win.getkey(0,8+self.index)
 
-
-    def getInputString(self, i):
-        return self.searchWin.win.instr(0, 8, i).decode("utf-8")
+    def getInputString(self):
+        return self.searchWin.win.instr(0, 8, self.index).decode("utf-8")
     
     def refresh(self):
         if self.debug:
@@ -43,11 +43,15 @@ class ProgramState:
         self.resWin.win.refresh()
         self.suggWin.win.refresh()
         self.searchWin.win.refresh()
+    
+    def eraseWord(self):
+        self.index=self.searchWin.win.instr(0,8,self.index).decode("utf-8").rfind(' ')
+        self.searchWin.win.move(0, 8+self.index)
 
     def resize(self):
-        curses.resize_term(*self.stdscr.win.getmaxyx())
+        curses.resize_term(*self.stdscr.getmaxyx())
 
-        self.stdscr.win.refresh()
+        self.stdscr.refresh()
 
         self.y=curses.LINES-1
         self.x=curses.COLS-1
@@ -57,7 +61,7 @@ class ProgramState:
         self.resWin.win.resize(self.resWin.y,self.resWin.x)
         self.resWin.win.border()
         
-        if debug:
+        if self.debug:
             self.debugWin.y=1
             self.debugWin.x=self.x+1
             self.debugWin.win.resize(self.debugWin.y,self.debugWin.x)

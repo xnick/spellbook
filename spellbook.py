@@ -1,7 +1,6 @@
 #!/bin/env python3
 
 
-import json
 import sys
 import curses
 import string
@@ -77,9 +76,8 @@ if __name__ == "__main__":
     debug=False
     
     data=Model()
-    windows=ProgramState(False)#View
+    windows=ProgramState(False)
 
-    i=0
     inp=""
     selected=''
     selectionno=0
@@ -93,24 +91,23 @@ if __name__ == "__main__":
                 ch='\x17' # piggy-back
                 init=True
             else:
-                ch=windows.getInput(i)
+                ch=windows.getInput()
             windows.stdscr.border()
             if ch in ['KEY_RESIZE']:
                 windows.resize()
                 dosearch=True
             elif ch in ['KEY_BACKSPACE', '\b', '\x7f']:
-                if i>0:
-                    i-=1
+                if windows.index>0:
+                    windows.index-=1
                 dosearch=True
             elif ch in ['^W', '\x17']:
-                i=windows.searchWin.win.instr(0,8,i).decode("utf-8").rfind(' ')
-                if i<0:
-                    i=0
-                windows.searchWin.win.move(0, 8+i)
+                windows.eraseWord()
+                if windows.index<0:
+                    windows.index=0
                 dosearch=True
             elif ch in ['KEY_ENTER', '\n']:
                 # Also make this enter fullscreen mode
-                i=len(selected)
+                windows.index=len(selected)
                 windows.searchWin.win.addstr(0, 8, selected)
                 dosearch=True
             elif ch in ['KEY_RIGHT', 'KEY_LEFT', 'KEY_UP', 'KEY_DOWN']:
@@ -143,14 +140,14 @@ if __name__ == "__main__":
                 elif ch=='KEY_HOME':
                     scroll=0
             elif ch in string.printable:
-                if i<windows.searchWin.x-10:
-                    i+=1
+                if windows.index<windows.searchWin.x-10:
+                    windows.index+=1
                 dosearch=True
             else:
                 raise Exception("What was that?")
 
             if dosearch:
-                searchterms=windows.getInputString(i).lower().split(' ')
+                searchterms=windows.getInputString().lower().split(' ')
                 spells=data.search(searchterms)
                 dosearch=False
 
@@ -168,9 +165,9 @@ if __name__ == "__main__":
                 selectionno=0
 
             windows.resWin.clearAndBorder()
-            windows.resWin.win.addstr(1,1,spellbook[selected]['name'])
+            windows.resWin.win.addstr(1,1,selected)
 
-            desc=prepareDescription(spellbook[selected])
+            desc=prepareDescription(data.spelllist[selected])
             
             try:
                 scroll=adddesc(desc, 
@@ -186,14 +183,14 @@ if __name__ == "__main__":
             except NotEnoughColumnsException:
                 print("Not enough columns, please resize your terminal")
 
-            windows.searchWin.win.move(0, 8+i)
+            windows.searchWin.win.move(0, 8+windows.index)
             windows.searchWin.win.clrtoeol()
             windows.searchWin.win.addstr(0, 8, ' '.join(searchterms))
             
             if debug:
                 windows.debugWin.clearAndBorder()
                 windows.debugWin.win.addstr(0, x-30, ' '+str(scroll)+' ')
-                windows.debugWin.win.addstr(0, x-25, ' '+str(i)+' ')
+                windows.debugWin.win.addstr(0, x-25, ' '+str(windows.index)+' ')
                 windows.debugWin.win.addstr(0, x-20, ' '+ch+' ')
                 windows.debugWin.win.addstr(0, 2, ' '.join(searchterms))
                 windows.debugWin.win.refresh()

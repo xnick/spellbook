@@ -1,15 +1,12 @@
+import json
+
 class Model():
     selected=''
     
-
     def __init__(self):
         with open("dnd-spells/spells.json") as jfile:
-            self.spellbook=json.load(jfile)
+            self.spellbook=json.load(jfile, encoding="utf-8")
         self.spelllist={spell['name']:spell for spell in self.spellbook}
-
-
-
-
 
     def search(self, terms):
         spells=[]
@@ -23,3 +20,6 @@ class Model():
                 if all(term in spell["name"].lower() for term in terms):
                     spells.append(spell)
         return spells
+
+
+
