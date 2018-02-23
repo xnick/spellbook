@@ -1,3 +1,6 @@
-spells.json
 .spellbook.py.swp
+.exceptions.py.swp
+.model.py.swp
+.programState.py.swp
 __pycache__
+

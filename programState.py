@@ -37,6 +37,7 @@ class ProgramState:
         self.resWin.win.mvwin(0,0)
         self.resWin.win.resize(self.resWin.y,self.resWin.x)
         self.resWin.win.border()
+        curses.curs_set(0)
         self.isFullscreen=True
 
     def setSearch(self):
@@ -74,6 +75,7 @@ class ProgramState:
         self.resWin.win.resize(self.resWin.y,self.resWin.x)
         self.resWin.win.mvwin(1,1)
         self.resWin.win.border()
+        curses.curs_set(1)
         self.isFullscreen=False
         
         if self.debug:
